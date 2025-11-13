@@ -25,3 +25,11 @@ Further documentation can be found at <https://hexdocs.pm/gbr_shared>.
 gleam run   # Run the project
 gleam test  # Run the tests
 ```
+
+## 🌄 Roadmap
+
+- [ ] Unit tests
+- [ ] More docs
+- [ ] GH workflow
+  - [ ] test & build
+  - [ ] changelog & publish
