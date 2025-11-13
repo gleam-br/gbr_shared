@@ -9,7 +9,6 @@ node_modules
 # output
 out
 dist
-build
 *.tgz
 
 # code coverage
