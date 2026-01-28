@@ -10,6 +10,53 @@ import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
 
+// Alias
+//
+type AnySchema =
+  Dict(String, Any)
+
+type AnySchemas =
+  List(AnySchema)
+
+/// The spec and decoder of an tool.
+///
+/// Tools are defined with only a decoder because
+/// implementations of a tool can be sync or async.
+///
+/// See `Effect` for implementing tool handling.
+///
+pub type Tool(t, in, out) {
+  Tool(spec: Spec(in, out), decoder: decode.Decoder(t))
+}
+
+/// Effect to call one generic tool
+///
+pub type Effect(return, tool, prompt) {
+  // Need more information
+  GetPrompt(prompt: prompt, resume: fn(AnySchemas) -> return)
+  // call generic tool
+  CallTool(tool: tool, resume: fn(Result(AnySchemas, String)) -> return)
+  // done call generic tool
+  Done(message: return)
+}
+
+/// The specification for a generic tool.
+///
+/// - name: Tool name (unique).
+/// - title: Tool title.
+/// - description: Tool description.
+/// - input: Input request data tool.
+/// - output: Output response data tool.
+///
+/// Generic types:
+///
+/// - in: Inbound data generic type
+/// - out: Outbound data generic type
+///
+pub type Spec(in, out) {
+  Spec(name: String, title: String, description: String, input: in, output: out)
+}
+
 /// Uses in definitions
 ///
 pub type Never {
@@ -25,6 +72,7 @@ pub type Any {
   Integer(Int)
   Number(Float)
   String(String)
+  BitArray(BitArray)
   Null
 }
 
@@ -63,6 +111,10 @@ pub fn any_to_json(any) {
     Integer(int) -> json.int(int)
     Number(float) -> json.float(float)
     String(string) -> json.string(string)
+    BitArray(bitarray) ->
+      bitarray
+      |> bit_array.base16_encode()
+      |> json.string()
     Null -> json.null()
   }
 }
@@ -79,6 +131,7 @@ pub fn any_to_dynamic(any) {
     Integer(int) -> dynamic.int(int)
     Number(float) -> dynamic.float(float)
     String(string) -> dynamic.string(string)
+    BitArray(bitarray) -> dynamic.bit_array(bitarray)
     Null -> dynamic.nil()
   }
 }
