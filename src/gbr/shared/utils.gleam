@@ -10,6 +10,12 @@ import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
 
+/// Uses in definitions
+///
+pub type Never {
+  Never(Never)
+}
+
 /// Generic any wrapper to native type
 ///
 pub type Any {
@@ -45,22 +51,6 @@ pub fn any_decoder() {
   ])
 }
 
-/// Decoder fields of any values
-///
-pub fn fields_decoder() {
-  decode.dict(decode.string, any_decoder())
-}
-
-/// Json to array bits
-///
-/// - json: String json representation
-///
-pub fn json_to_bits(json) {
-  json
-  |> json.to_string
-  |> bit_array.from_string
-}
-
 /// Any value to json
 ///
 /// - any: Any type value
@@ -75,6 +65,22 @@ pub fn any_to_json(any) {
     String(string) -> json.string(string)
     Null -> json.null()
   }
+}
+
+/// Decoder fields of any values
+///
+pub fn fields_decoder() {
+  decode.dict(decode.string, any_decoder())
+}
+
+/// Json to array bits
+///
+/// - json: String json representation
+///
+pub fn json_to_bits(json) {
+  json
+  |> json.to_string
+  |> bit_array.from_string
 }
 
 /// Fields of any values to json
@@ -116,7 +122,7 @@ pub fn fields_to_dynamic(fields) {
   )
 }
 
-/// Clone dictionary
+/// Json dictionary
 ///
 /// - dict: Dict type
 /// - values: Function convert key to value json
@@ -142,13 +148,6 @@ pub fn object(entries: List(#(String, json.Json))) {
 // - [ ] How send and catch event via effect pattern
 // - [ ] How decode additional with except
 
-/// Never execute effect
-/// TODO
-///
-pub type Never {
-  Never(Never)
-}
-
 /// Decoder additional
 ///
 /// TODO
@@ -159,4 +158,47 @@ pub fn decode_additional(_except, _decoder, next) {
   // TODO
   use additional <- decode.then(decode.success(dict.new()))
   next(additional)
+}
+
+pub fn header_code_generated(timestamp, contents) {
+  "// Licensed under the Lucid License (Individual Sovereignty & Non-Aggression)
+// See LICENSE file in the root of the repository.
+//......................=#%%*:...............................
+//....................:#@%##@@+..............................
+//....................=@%****%@#.............................
+//...................:@@#+=+**#@@=...........................
+//...................*@#*===+***@@#..........................
+//..................-@@*=====+***%@%-........................
+//..................@@*=---==++***#@@*:......................
+//.................*@#=-::--==+++***#@@@@@@@@@@@@@@@%+:......
+//................+@@-:.:::--=++++************######%@%:.....
+//.............+#@@%-:...:::--=++++++************###%@@-.....
+//........:*%@@@%+-:......::--==+++++++++++++++*###%@@*......
+//....-#@@@@%*+=:.........:::--=+++++++++++++======@@*.......
+//..+@@@#*++=::::::......::::::.:::::::::::::-===+@@+........
+//.:@@#**+=====--::::..........:::::-++=-:::-===+@@=.........
+//.:%@%%##**+++=-:...........::::::*%*+#%=:-===*@@-..........
+//..:*@@@%##*+-:::::-#%%#=::::::::=%+:::++-===*@%-...........
+//.....+@@@#==--:::-@*::+@=::-::++::::::::-===@%-............
+//.......-%@@*====--%-:::-::=#++#%:::::::-===+@#:............
+//.........:#@@#==-::::::::::-**=-=+++++++####@@=............
+//............#@@*=-:::::::::-=+++++++++++*###%@#:...........
+//.............-@%+=-::::::-+++++++++++++++*##%@@-...........
+//.............:%@+=-::::-++++++++++++++++++###%@#...........
+//.............:#@+=-::-=++++**########***++*##%@@=..........
+//..............#@*==:-+++*#####################%@@..........
+//..............*@*==-++*#####%%@@@@@@%%#########@@=.........
+//..............+@*==+######%@@@#-:-*%@@@@@@%%##%@@-.........
+//..............=@#=+#####%@@%=..........:=#@@@@@@-..........
+//..............=@#=*##%@@@#:................................
+//..............:%@*%%@@%=...................................
+//...............:*%%%*:.....................................
+//
+//
+//###########################################################
+//# Code auto generate with love by Gleam BR in:
+//# " <> timestamp <> "
+//###########################################################
+//
+" <> contents
 }
