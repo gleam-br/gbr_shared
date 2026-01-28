@@ -67,6 +67,43 @@ pub fn any_to_json(any) {
   }
 }
 
+/// Any value to dynamic
+///
+/// - any: Any type value
+///
+pub fn any_to_dynamic(any) {
+  case any {
+    Object(fields) -> fields_to_dynamic(fields)
+    Array(items) -> dynamic.list(list.map(items, any_to_dynamic))
+    Boolean(bool) -> dynamic.bool(bool)
+    Integer(int) -> dynamic.int(int)
+    Number(float) -> dynamic.float(float)
+    String(string) -> dynamic.string(string)
+    Null -> dynamic.nil()
+  }
+}
+
+/// Convert list of tuple key and value json to object of any.
+///
+/// - entries: list of tuple #(String, json.Json)
+///
+pub fn object(entries: List(#(String, json.Json))) {
+  list.filter(entries, fn(entry) {
+    let #(_, v) = entry
+    v != json.null()
+  })
+  |> json.object
+}
+
+/// Json dictionary
+///
+/// - dict: Dict type
+/// - values: Function convert key to value json
+///
+pub fn dict(dict, values) {
+  json.dict(dict, fn(x) { x }, values)
+}
+
 /// Decoder fields of any values
 ///
 pub fn fields_decoder() {
@@ -91,22 +128,6 @@ pub fn fields_to_json(fields) {
   json.dict(fields, fn(x) { x }, any_to_json)
 }
 
-/// Any value to dynamic
-///
-/// - any: Any type value
-///
-pub fn any_to_dynamic(any) {
-  case any {
-    Object(fields) -> fields_to_dynamic(fields)
-    Array(items) -> dynamic.list(list.map(items, any_to_dynamic))
-    Boolean(bool) -> dynamic.bool(bool)
-    Integer(int) -> dynamic.int(int)
-    Number(float) -> dynamic.float(float)
-    String(string) -> dynamic.string(string)
-    Null -> dynamic.nil()
-  }
-}
-
 /// Fields of any type values to dynamic
 ///
 /// - fields: Fields of any type values
@@ -122,25 +143,40 @@ pub fn fields_to_dynamic(fields) {
   )
 }
 
-/// Json dictionary
-///
-/// - dict: Dict type
-/// - values: Function convert key to value json
-///
-pub fn dict(dict, values) {
-  json.dict(dict, fn(x) { x }, values)
+pub fn default_field(key, decoder, default, k) {
+  decode.optional_field(
+    key,
+    default,
+    decode.optional(decoder) |> decode.map(option.unwrap(_, or: default)),
+    k,
+  )
 }
 
-/// Convert list of tuple key and value json to object of any.
-///
-/// - entries: list of tuple #(String, json.Json)
-///
-pub fn object(entries: List(#(String, json.Json))) {
-  list.filter(entries, fn(entry) {
-    let #(_, v) = entry
-    v != json.null()
-  })
-  |> json.object
+pub fn optional_field(key, decoder, k) {
+  decode.optional_field(key, None, decode.optional(decoder), k)
+}
+
+pub fn discriminate(
+  field: name,
+  decoder: decode.Decoder(d),
+  default: t,
+  choose: fn(d) -> Result(decode.Decoder(t), String),
+) -> decode.Decoder(t) {
+  use on <- decode.optional_field(
+    field,
+    decode.failure(default, "Discriminator"),
+    decode.map(decoder, fn(on) {
+      case choose(on) {
+        Ok(decoder) -> decoder
+        Error(message) -> decode.failure(default, message)
+      }
+    }),
+  )
+  on
+}
+
+pub fn any() {
+  decode.new_primitive_decoder("any", Ok)
 }
 
 // Experimental
