@@ -12,6 +12,7 @@ import gleam/option.{None, Some}
 
 // Alias
 //
+
 type AnySchema =
   Dict(String, Any)
 
@@ -76,6 +77,16 @@ pub type Any {
   Null
 }
 
+/// Any error generic type
+///
+/// - code: Indentification int.
+/// - message: Message error.
+/// - data: Any data error.
+///
+pub type AnyError {
+  AnyError(code: Int, message: String, data: Any)
+}
+
 /// Represent fields of any types
 ///
 pub type Fields =
@@ -123,7 +134,7 @@ pub fn any_to_json(any) {
 ///
 /// - any: Any type value
 ///
-pub fn any_to_dynamic(any) {
+pub fn any_to_dynamic(any: Any) -> dynamic.Dynamic {
   case any {
     Object(fields) -> fields_to_dynamic(fields)
     Array(items) -> dynamic.list(list.map(items, any_to_dynamic))
