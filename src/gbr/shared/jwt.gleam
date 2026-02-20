@@ -139,30 +139,39 @@ fn parts(
   let parts = string.split(jwt_string, ".")
 
   use encoded_header <- result.try(
-    list.first(parts) |> result.replace_error(HeaderEmpty),
+    list.first(parts)
+    |> result.replace_error(HeaderEmpty),
   )
+
   let parts = list.drop(parts, 1)
+
   use header_string <- result.try(
     encoded_header
     |> bit_array.base64_url_decode()
     |> result.try(bit_array.to_string)
     |> result.replace_error(HeaderInvalid),
   )
+
   use header <- result.try(
-    json.parse(header_string, decode.dict(decode.string, decode.dynamic))
+    header_string
+    |> json.parse(decode.dict(decode.string, decode.dynamic))
     |> result.replace_error(HeaderInvalid),
   )
 
   use encoded_payload <- result.try(
-    list.first(parts) |> result.replace_error(PayloadEmpty),
+    list.first(parts)
+    |> result.replace_error(PayloadEmpty),
   )
+
   let parts = list.drop(parts, 1)
+
   use payload_string <- result.try(
     encoded_payload
     |> bit_array.base64_url_decode()
     |> result.try(bit_array.to_string)
     |> result.replace_error(PayloadInvalid),
   )
+
   use payload <- result.map(
     json.parse(payload_string, decode.dict(decode.string, decode.dynamic))
     |> result.replace_error(PayloadInvalid),
