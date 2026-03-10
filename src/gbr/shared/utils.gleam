@@ -4,7 +4,6 @@
 
 import gleam/bit_array
 import gleam/dict.{type Dict}
-import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/json
 import gleam/list
@@ -130,23 +129,6 @@ pub fn any_to_json(any) {
   }
 }
 
-/// Any value to dynamic
-///
-/// - any: Any type value
-///
-pub fn any_to_dynamic(any: Any) -> dynamic.Dynamic {
-  case any {
-    Object(fields) -> fields_to_dynamic(fields)
-    Array(items) -> dynamic.list(list.map(items, any_to_dynamic))
-    Boolean(bool) -> dynamic.bool(bool)
-    Integer(int) -> dynamic.int(int)
-    Number(float) -> dynamic.float(float)
-    String(string) -> dynamic.string(string)
-    BitArray(bitarray) -> dynamic.bit_array(bitarray)
-    Null -> dynamic.nil()
-  }
-}
-
 /// Convert list of tuple key and value json to object of any.
 ///
 /// - entries: list of tuple #(String, json.Json)
@@ -190,21 +172,6 @@ pub fn json_to_bits(json) {
 ///
 pub fn fields_to_json(fields) {
   json.dict(fields, fn(x) { x }, any_to_json)
-}
-
-/// Fields of any type values to dynamic
-///
-/// - fields: Fields of any type values
-///
-pub fn fields_to_dynamic(fields) {
-  dynamic.properties(
-    fields
-    |> dict.to_list
-    |> list.map(fn(entry) {
-      let #(key, value) = entry
-      #(dynamic.string(key), any_to_dynamic(value))
-    }),
-  )
 }
 
 /// Default field to optional decode field
